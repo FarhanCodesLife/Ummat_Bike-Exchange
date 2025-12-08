@@ -175,11 +175,11 @@ export default function EditBike() {
 
   return (
     <Layout>
-      <h2 className="text-2xl font-bold mb-4">Edit Bike</h2>
+      <h2 className="text-2xl font-bold text-black mb-4">Edit Bike</h2>
       {Object.keys(formData).length > 0 ? (
         <form onSubmit={handleSubmit}>
           <Tabs tabs={tabs}/>
-          <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded mt-4 hover:bg-blue-700" disabled={loading}>
+          <button type="submit" className="bg-blue-600 text-black px-6 py-2 rounded mt-4 hover:bg-blue-700" disabled={loading}>
             {loading ? "Updating..." : "Update Bike"}
           </button>
         </form>

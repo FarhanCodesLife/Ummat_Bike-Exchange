@@ -31,7 +31,7 @@ export default function BikeList() {
 
   return (
     <Layout>
-      <h2 className="text-2xl font-bold mb-4">All Bikes</h2>
+      <h2 className="text-2xl font-bold text-dark mb-4">All Bikes</h2>
       <div className="flex justify-between items-center mb-4">
         <input
           type="text"
@@ -45,9 +45,9 @@ export default function BikeList() {
         </Link>
       </div>
 
-      <div className="overflow-x-auto bg-white shadow rounded">
+      <div className="overflow-x-auto bg-white text-blue shadow rounded">
         <table className="min-w-full table-auto">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-800 text-blue">
             <tr>
               <th className="px-4 py-2 border">Bill Number</th>
               <th className="px-4 py-2 border">Registration</th>
