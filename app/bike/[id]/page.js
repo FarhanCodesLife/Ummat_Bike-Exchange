@@ -5,169 +5,335 @@ import Layout from "../../../components/Layout";
 import Tabs from "../../../components/Tabs";
 import FormSection from "../../../components/FormSection";
 import ImageUploader from "../../../components/ImageUploader";
-import { db, storage } from "../../../lib/firebase";
+import { db } from "../../../lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+const IMAGE_KEYS = [
+  "page1","page2","page3","page4","bookFront","bookBack","smartFront","smartBack",
+  "ownerCNIC","frontPhoto","backPhoto","leftPhoto","rightPhoto","meterPhoto",
+  "enginePhoto","chassisPhoto","repairBill","saleReceipt","buyerCNICPhoto",
+  "saleAgreement","salePhotos"
+];
 
 export default function EditBike() {
   const { id } = useParams();
   const router = useRouter();
+
   const [formData, setFormData] = useState({});
   const [files, setFiles] = useState({});
+  const [existingFiles, setExistingFiles] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Fetch bike data by ID
+  // Fetch existing bike data
   useEffect(() => {
+    if (!id) return;
     const fetchBike = async () => {
       const docRef = doc(db, "bikes", id);
       const snapshot = await getDoc(docRef);
-      if (snapshot.exists()) setFormData(snapshot.data());
-      else alert("Bike not found!");
+      if (!snapshot.exists()) return alert("Bike not found!");
+      const data = snapshot.data();
+      setFormData(data);
+
+      const urls = {};
+      IMAGE_KEYS.forEach((k) => { if (data[k]) urls[k] = data[k]; });
+      setExistingFiles(urls);
     };
     fetchBike();
   }, [id]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleFileChange = (e, key) => setFiles({ ...files, [key]: e.target.files[0] });
 
-  const handleFileChange = (e, key) => {
-    setFiles({ ...files, [key]: e.target.files[0] });
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (!data.secure_url) throw new Error("Cloudinary upload failed");
+    return data.secure_url;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
-    // Upload new files if changed
-    const uploadedUrls = {};
-    for (const key in files) {
-      if (files[key]) {
-        const storageRef = ref(storage, `bikes/${Date.now()}_${files[key].name}`);
-        await uploadBytes(storageRef, files[key]);
-        uploadedUrls[key] = await getDownloadURL(storageRef);
-      }
-    }
-
     try {
+      const uploadedUrls = { ...existingFiles };
+
+      for (const key of IMAGE_KEYS) {
+        if (files[key]) {
+          uploadedUrls[key] = await uploadToCloudinary(files[key]);
+        }
+      }
+
       const docRef = doc(db, "bikes", id);
       await updateDoc(docRef, { ...formData, ...uploadedUrls });
       alert("Bike updated successfully!");
       router.push("/bike");
     } catch (err) {
       console.error(err);
-      alert("Error updating bike!");
+      alert("Error: " + err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Tabs content (same as Add form, but pre-filled)
+  const renderImageFields = (keys) =>
+    keys.map((key) => (
+      <ImageUploader
+        key={key}
+        label={key}
+        existingUrl={existingFiles[key]}
+        onChange={(e) => handleFileChange(e, key)}
+      />
+    ));
+
   const tabs = [
-    {
-      label: "Part 1: Purchase Info",
-      content: (
-        <FormSection title="A. Bill & Seller Information">
-          <input placeholder="Bill Number / Form Number" name="billNumber" value={formData.billNumber || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Purchase Date & Time" name="purchaseDate" value={formData.purchaseDate || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Seller CNIC Number" name="sellerCNIC" value={formData.sellerCNIC || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Seller Name" name="sellerName" value={formData.sellerName || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Father Name" name="fatherName" value={formData.fatherName || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Address" name="address" value={formData.address || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Phone Number" name="phone" value={formData.phone || ""} onChange={handleChange} className="input-field"/>
+  {
+    label: "Part 1: Purchase Info",
+    content: (
+      <FormSection title="A. Bill & Seller Info">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Bill Number / Form Number */}
+          <div className="flex flex-col">
+            <label className="font-semibold text-gray-700 mb-1">Bill Number / Form Number</label>
+            <input
+              placeholder="Enter Bill Number"
+              value={formData.billNumber || ""}
+              name="billNumber"
+              onChange={handleChange}
+              className="input-field w-full"
+            />
+          </div>
 
-          <hr className="my-4"/>
-          <h3 className="font-semibold mb-2">B. Bike Registration Details</h3>
-          <input placeholder="Registration Number" name="registrationNumber" value={formData.registrationNumber || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Chassis Number" name="chassisNumber" value={formData.chassisNumber || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Engine Number" name="engineNumber" value={formData.engineNumber || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Horse Power (HP)" name="hp" value={formData.hp || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Model / Year" name="modelYear" value={formData.modelYear || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Colour" name="color" value={formData.color || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Maker / Company" name="maker" value={formData.maker || ""} onChange={handleChange} className="input-field"/>
-          <select name="originalPlates" value={formData.originalPlates || ""} onChange={handleChange} className="input-field">
-            <option value="">Original Number Plates Available?</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
+          <div className="flex flex-col">
+            <label className="font-semibold text-gray-700 mb-1">Purchase Date & Time</label>
+            <input
+              placeholder="Enter Purchase Date & Time"
+              value={formData.purchaseDate || ""}
+              name="purchaseDate"
+              onChange={handleChange}
+              className="input-field w-full"
+            />
+          </div>
 
-          <hr className="my-4"/>
-          <h3 className="font-semibold mb-2">C. Verification Details</h3>
-          <input placeholder="CPLC Checked Date" name="cplcDate" value={formData.cplcDate || ""} onChange={handleChange} className="input-field"/>
-          <select name="cplcStatus" value={formData.cplcStatus || ""} onChange={handleChange} className="input-field">
-            <option value="">CPLC Status</option>
-            <option value="Clear">Clear</option>
-            <option value="Reported">Reported</option>
-            <option value="Not Checked">Not Checked</option>
-          </select>
-          <input placeholder="Operator Number" name="operatorNumber" value={formData.operatorNumber || ""} onChange={handleChange} className="input-field"/>
+          <div className="flex flex-col">
+            <label className="font-semibold text-gray-700 mb-1">Seller CNIC Number</label>
+            <input
+              placeholder="Enter Seller CNIC"
+              value={formData.sellerCNIC || ""}
+              name="sellerCNIC"
+              onChange={handleChange}
+              className="input-field w-full"
+            />
+          </div>
 
-          <hr className="my-4"/>
-          <h3 className="font-semibold mb-2">D. Bike File / Book Details</h3>
-          <ImageUploader label="Page 1" onChange={(e)=>handleFileChange(e,"page1")}/>
-          <ImageUploader label="Page 2" onChange={(e)=>handleFileChange(e,"page2")}/>
-          <ImageUploader label="Page 3" onChange={(e)=>handleFileChange(e,"page3")}/>
-          <ImageUploader label="Page 4" onChange={(e)=>handleFileChange(e,"page4")}/>
-          <ImageUploader label="Book Front" onChange={(e)=>handleFileChange(e,"bookFront")}/>
-          <ImageUploader label="Book Back" onChange={(e)=>handleFileChange(e,"bookBack")}/>
-          <ImageUploader label="Smart Card Front" onChange={(e)=>handleFileChange(e,"smartFront")}/>
-          <ImageUploader label="Smart Card Back" onChange={(e)=>handleFileChange(e,"smartBack")}/>
+          <div className="flex flex-col">
+            <label className="font-semibold text-gray-700 mb-1">Seller Name</label>
+            <input
+              placeholder="Enter Seller Name"
+              value={formData.sellerName || ""}
+              name="sellerName"
+              onChange={handleChange}
+              className="input-field w-full"
+            />
+          </div>
 
-          <hr className="my-4"/>
-          <h3 className="font-semibold mb-2">E. Owner Information</h3>
-          <input placeholder="Owner Name" name="ownerName" value={formData.ownerName || ""} onChange={handleChange} className="input-field"/>
-          <ImageUploader label="First Owner CNIC Photo" onChange={(e)=>handleFileChange(e,"ownerCNIC")}/>
+          <div className="flex flex-col">
+            <label className="font-semibold text-gray-700 mb-1">Father Name</label>
+            <input
+              placeholder="Enter Father Name"
+              value={formData.fatherName || ""}
+              name="fatherName"
+              onChange={handleChange}
+              className="input-field w-full"
+            />
+          </div>
 
-          <hr className="my-4"/>
-          <h3 className="font-semibold mb-2">F. Bike Photos</h3>
-          <ImageUploader label="Front Photo" onChange={(e)=>handleFileChange(e,"frontPhoto")}/>
-          <ImageUploader label="Back Photo" onChange={(e)=>handleFileChange(e,"backPhoto")}/>
-          <ImageUploader label="Left Side" onChange={(e)=>handleFileChange(e,"leftPhoto")}/>
-          <ImageUploader label="Right Side" onChange={(e)=>handleFileChange(e,"rightPhoto")}/>
-          <ImageUploader label="Meter Photo" onChange={(e)=>handleFileChange(e,"meterPhoto")}/>
-          <ImageUploader label="Engine Number Photo" onChange={(e)=>handleFileChange(e,"enginePhoto")}/>
-          <ImageUploader label="Chassis Number Photo" onChange={(e)=>handleFileChange(e,"chassisPhoto")}/>
+          <div className="flex flex-col">
+            <label className="font-semibold text-gray-700 mb-1">Address</label>
+            <input
+              placeholder="Enter Address"
+              value={formData.address || ""}
+              name="address"
+              onChange={handleChange}
+              className="input-field w-full"
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="font-semibold text-gray-700 mb-1">Phone Number</label>
+            <input
+              placeholder="Enter Phone Number"
+              value={formData.phone || ""}
+              name="phone"
+              onChange={handleChange}
+              className="input-field w-full"
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="font-semibold text-gray-700 mb-1">Owner Name</label>
+            <input
+              placeholder="Enter Owner Name"
+              value={formData.ownerName || ""}
+              name="ownerName"
+              onChange={handleChange}
+              className="input-field w-full"
+            />
+          </div>
+
+
+
+       
+  <div className="flex flex-col">
+    <label className="font-semibold text-gray-700 mb-1">Registration Number</label>
+    <input
+      placeholder="Enter Registration Number"
+      value={formData.registrationNumber || ""}
+      name="registrationNumber"
+      onChange={handleChange}
+      className="input-field w-full"
+    />
+  </div>
+
+  <div className="flex flex-col">
+    <label className="font-semibold text-gray-700 mb-1">Chassis Number</label>
+    <input
+      placeholder="Enter Chassis Number"
+      value={formData.chassisNumber || ""}
+      name="chassisNumber"
+      onChange={handleChange}
+      className="input-field w-full"
+    />
+  </div>
+
+  <div className="flex flex-col">
+    <label className="font-semibold text-gray-700 mb-1">Engine Number</label>
+    <input
+      placeholder="Enter Engine Number"
+      value={formData.engineNumber || ""}
+      name="engineNumber"
+      onChange={handleChange}
+      className="input-field w-full"
+    />
+  </div>
+
+  <div className="flex flex-col">
+    <label className="font-semibold text-gray-700 mb-1">Horse Power (HP)</label>
+    <input
+      placeholder="Enter Horse Power"
+      value={formData.hp || ""}
+      name="hp"
+      onChange={handleChange}
+      className="input-field w-full"
+    />
+  </div>
+
+  <div className="flex flex-col">
+    <label className="font-semibold text-gray-700 mb-1">Model / Year</label>
+    <input
+      placeholder="Enter Model / Year"
+      value={formData.modelYear || ""}
+      name="modelYear"
+      onChange={handleChange}
+      className="input-field w-full"
+    />
+  </div>
+
+  <div className="flex flex-col">
+    <label className="font-semibold text-gray-700 mb-1">Colour</label>
+    <input
+      placeholder="Enter Colour"
+      value={formData.color || ""}
+      name="color"
+      onChange={handleChange}
+      className="input-field w-full"
+    />
+  </div>
+
+  <div className="flex flex-col">
+    <label className="font-semibold text-gray-700 mb-1">Maker / Company</label>
+    <input
+      placeholder="Enter Maker / Company"
+      value={formData.maker || ""}
+      name="maker"
+      onChange={handleChange}
+      className="input-field w-full"
+    />
+  </div>
+
+  <div className="flex flex-col">
+    <label className="font-semibold text-gray-700 mb-1">Original Number Plates Available?</label>
+    <select
+      name="originalPlates"
+      value={formData.originalPlates || ""}
+      onChange={handleChange}
+      className="input-field w-full"
+    >
+      <option value="">Select an option</option>
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </div>
+
+
+        
+
+        </div>
+
+        {/* Image Upload Fields */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+          {renderImageFields([
+            "ownerCNIC",
+            "shopSlip",
+            "frontPhoto",
+            "backPhoto",
+            "leftPhoto",
+            "rightPhoto",
+            "meterPhoto",
+            "enginePhoto",
+            "chassisPhoto",
+            "page1",
+            "page2",
+            "page3",
+            "page4",
+            "bookFront",
+            "bookBack",
+            "smartFront",
+            "smartBack",
+          ])}
+        </div>
+      
         </FormSection>
       ),
     },
     {
       label: "Part 2: Repair Info",
       content: (
-        <FormSection title="Repair / Cost Info">
-          <ImageUploader label="Repair Bill Photo" onChange={(e)=>handleFileChange(e,"repairBill")}/>
-          <input placeholder="Description" name="repairDescription" value={formData.repairDescription || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Cost" name="repairCost" type="number" value={formData.repairCost || ""} onChange={handleChange} className="input-field"/>
+        <FormSection title="Repair Info">
+          {renderImageFields(["repairBill"])}
+          <input name="repairDescription" value={formData.repairDescription || ""} onChange={handleChange} className="input-field" placeholder="Repair Description" />
+          <input name="repairCost" type="number" value={formData.repairCost || ""} onChange={handleChange} className="input-field" placeholder="Repair Cost" />
         </FormSection>
       ),
     },
     {
       label: "Part 3: Sale Info",
       content: (
-        <FormSection title="Sale / Customer Info">
-          <input placeholder="Account Number" name="accountNumber" value={formData.accountNumber || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Sale Date & Time" name="saleDate" value={formData.saleDate || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Buyer Name" name="buyerName" value={formData.buyerName || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Buyer CNIC Number" name="buyerCNIC" value={formData.buyerCNIC || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Buyer Phone Number" name="buyerPhone" value={formData.buyerPhone || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Buyer Address" name="buyerAddress" value={formData.buyerAddress || ""} onChange={handleChange} className="input-field"/>
-          <input placeholder="Sale Price" name="salePrice" type="number" value={formData.salePrice || ""} onChange={handleChange} className="input-field"/>
-          <select name="paymentMethod" value={formData.paymentMethod || ""} onChange={handleChange} className="input-field">
-            <option value="">Cash / Installment</option>
-            <option value="Cash">Cash</option>
-            <option value="Installment">Installment</option>
-          </select>
-          <select name="fileHandoverStatus" value={formData.fileHandoverStatus || ""} onChange={handleChange} className="input-field">
-            <option value="">File / Registration Book Handover Status</option>
-            <option value="With Showroom">With Showroom</option>
-            <option value="Handed to Customer">Handed to Customer</option>
-            <option value="Pending">Pending</option>
-          </select>
-          <input placeholder="File Handover Date" name="fileHandoverDate" value={formData.fileHandoverDate || ""} onChange={handleChange} className="input-field"/>
-          <ImageUploader label="Sale Receipt (image/pdf)" onChange={(e)=>handleFileChange(e,"saleReceipt")}/>
-          <ImageUploader label="Buyer CNIC Photo" onChange={(e)=>handleFileChange(e,"buyerCNICPhoto")}/>
-          <ImageUploader label="Sale Agreement / Invoice (optional)" onChange={(e)=>handleFileChange(e,"saleAgreement")}/>
-          <ImageUploader label="Sale Photos (Front / Side / Meter)" onChange={(e)=>handleFileChange(e,"salePhotos")}/>
+        <FormSection title="Sale Info">
+          <input name="buyerName" value={formData.buyerName || ""} onChange={handleChange} className="input-field" placeholder="Buyer Name" />
+          <input name="buyerPhone" value={formData.buyerPhone || ""} onChange={handleChange} className="input-field" placeholder="Buyer Phone" />
+          <input name="salePrice" type="number" value={formData.salePrice || ""} onChange={handleChange} className="input-field" placeholder="Sale Price" />
+          {renderImageFields(["saleReceipt","buyerCNICPhoto","saleAgreement","salePhotos"])}
         </FormSection>
       ),
     },
@@ -175,17 +341,13 @@ export default function EditBike() {
 
   return (
     <Layout>
-      <h2 className="text-2xl font-bold text-black mb-4">Edit Bike</h2>
-      {Object.keys(formData).length > 0 ? (
-        <form onSubmit={handleSubmit}>
-          <Tabs tabs={tabs}/>
-          <button type="submit" className="bg-blue-600 text-black px-6 py-2 rounded mt-4 hover:bg-blue-700" disabled={loading}>
-            {loading ? "Updating..." : "Update Bike"}
-          </button>
-        </form>
-      ) : (
-        <p>Loading bike data...</p>
-      )}
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">Edit Bike</h2>
+      <Tabs tabs={tabs} />
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-md">
+        <button type="submit" disabled={loading} className="w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition-all duration-200">
+          {loading ? "Updating..." : "Update Bike"}
+        </button>
+      </form>
     </Layout>
   );
 }

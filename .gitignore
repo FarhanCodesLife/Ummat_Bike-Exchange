@@ -40,6 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dwuc4qz3n
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=bike
 
 
 
