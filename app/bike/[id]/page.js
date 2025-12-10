@@ -128,7 +128,7 @@ export default function EditBike() {
           <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Seller Bill Number</label>
 
 
-            <input placeholder="Seller Bill Number " name="SellerbillNumber" onChange={handleChange} className="input-field" />
+            <input placeholder="Seller Bill Number " name="SellerbillNumber" value={formData.SellerbillNumber || ""} onChange={handleChange} className="input-field" />
             </div>
 
           <hr className="my-6" />
@@ -220,7 +220,7 @@ export default function EditBike() {
             </select>
 </div>
 <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Operator Number</label>
-            <input name="operatorNumber" value={formData.operatorNumber || ""} onChange={handleChange} className="input-field" />
+            <input name="SelleroperatorNumber" value={formData.SelleroperatorNumber || ""} onChange={handleChange} className="input-field" />
 </div>
           </div>
 
@@ -288,7 +288,7 @@ export default function EditBike() {
 <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Buyer Bill  Number</label>
 
 
-            <input placeholder="Buyer Bill Number " name="BuyerbillNumber" onChange={handleChange} className="input-field" />
+            <input placeholder="Buyer Bill Number " name="BuyerbillNumber" value={formData.BuyerbillNumber || ""}   onChange={handleChange} className="input-field" />
             </div>
 
             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Account Number</label>
@@ -340,7 +340,18 @@ export default function EditBike() {
             </select>
 
 
-             <hr className="my-6" />
+             
+
+            {renderImages(["buyerFrontCNICPhoto", "buyerBackCNICPhoto", "buyerWithBikePhoto", "saleSlip", "salePhotos1", "salePhotos2"])}
+
+ <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">File Handover Date</label>
+
+            <input type="date" name="fileHandoverDate" value={formData.fileHandoverDate || ""} onChange={handleChange} className="input-field" />
+            </div>
+
+            {renderImages(["fileHandOwerSlip"])}
+          </div>
+          <hr className="my-6" />
 
           <h3 className="font-semibold mb-3">Buyer Verification</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -361,16 +372,6 @@ export default function EditBike() {
 <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">BuyerOperator Number</label>
             <input name="BuyeroperatorNumber" value={formData.BuyeroperatorNumber || ""} onChange={handleChange} className="input-field" />
 </div>
-          </div>
-
-            {renderImages(["buyerFrontCNICPhoto", "buyerBackCNICPhoto", "buyerWithBikePhoto", "saleSlip", "salePhotos1", "salePhotos2"])}
-
- <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">File Handover Date</label>
-
-            <input type="date" name="fileHandoverDate" value={formData.fileHandoverDate || ""} onChange={handleChange} className="input-field" />
-            </div>
-
-            {renderImages(["fileHandOwerSlip"])}
           </div>
         </FormSection>
       ),

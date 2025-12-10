@@ -137,10 +137,10 @@ export default function SingleBikeView({ params }) {
                     <Detail label="Buyer Bill Number" value={bike.BuyerbillNumber} />
           <Detail label="Account Number" value={bike.accountNumber} />
 
-          <Detail label="Buyer Name" value={bike.BuyerName} />
-          <Detail label="Buyer CNIC" value={bike.BuyerCNIC} />
-          <Detail label="Buyer Phone" value={bike.BuyerPhone} />
-          <Detail label="Buyer Address" value={bike.BuyerAddress} />
+          <Detail label="Buyer Name" value={bike.buyerName} />
+          <Detail label="Buyer CNIC" value={bike.buyerCNIC} />
+          <Detail label="Buyer Phone" value={bike.buyerPhone} />
+          <Detail label="Buyer Address" value={bike.buyerAddress} />
           <Detail label="Sale Price" value={bike.salePrice} />
           <Detail label="Payment Method" value={bike.paymentMethod} />
           <Detail label="File Handover Status" value={bike.fileHandoverStatus} />
