@@ -4,12 +4,14 @@
   import Layout from "../../components/Layout";
   import { db } from "../../lib/firebase";
   import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
   export default function BikeDashboard() {
     const [bikes, setBikes] = useState([]);
     const [filtered, setFiltered] = useState([]);
     const [search, setSearch] = useState("");
     const [activeFilter, setActiveFilter] = useState("all");
+    const router = useRouter();
 
     useEffect(() => {
       const fetchBikes = async () => {
@@ -78,7 +80,13 @@
 
     return (
       <Layout>
-        <h2 className="text-3xl font-bold mb-4">Bike Dashboard</h2>
+         <button
+        onClick={() => router.push("/")}
+        className="mb-5 bg-gray-200 hover:bg-gray-300 text-gray-900 px-4 py-2 rounded-lg"
+      >
+        ← Home
+      </button>
+        <h2 className="text-3xl font-bold mb-4">All Bike Dashboard</h2>
 
         {/* Search + Add */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-5">
