@@ -7,6 +7,8 @@ import FormSection from "../../../components/FormSection";
 import ImageUploader from "../../../components/ImageUploader";
 import { db } from "../../../lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import ProtectedAdmin from "@/components/ProtectedAdmin";
+
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -379,6 +381,8 @@ export default function EditBike() {
   ];
 
   return (
+        <ProtectedAdmin>
+
     <Layout>
       <h2 className="text-3xl font-bold mb-6 text-gray-800">Edit Bike</h2>
 
@@ -394,5 +398,6 @@ export default function EditBike() {
         </button>
       </form>
     </Layout>
+    </ProtectedAdmin>
   );
 }

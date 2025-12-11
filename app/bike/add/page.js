@@ -11,6 +11,9 @@ import { collection, addDoc, query, orderBy, limit, getDocs } from "firebase/fir
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
+const inputClass =
+    "w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all duration-200 outline-none text-gray-700";
+
 export default function AddBike() {
   const router = useRouter();
   const [formData, setFormData] = useState({});
@@ -115,7 +118,7 @@ export default function AddBike() {
             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Seller Bill Number</label>
 
             
-            <input placeholder="Seller Bill Number " name="SellerbillNumber" onChange={handleChange} className="input-field" />
+            <input placeholder="Seller Bill Number " name="SellerbillNumber" onChange={handleChange} className="inputClass" />
           </div>
           </div>
           <hr className="my-6 border-gray-300" />
@@ -126,19 +129,19 @@ export default function AddBike() {
             <div className="flex flex-col">
               <label className="font-semibold text-gray-700 mb-1">Purchase Date</label>
 
-              <input placeholder="Purchase Date" name="purchaseDate" type="date" onChange={handleChange} className="input-field" />
+              <input placeholder="Purchase Date" name="purchaseDate" type="date" onChange={handleChange} className="inputClass" />
             </div>
             <div className="flex flex-col">
               <label className="font-semibold text-gray-700 mb-1">Purchase Time</label>
 
-              <input placeholder="Purchase Time" name="purchaseTime" type="time" onChange={handleChange} className="input-field" />
+              <input placeholder="Purchase Time" name="purchaseTime" type="time" onChange={handleChange} className="inputClass" />
             </div>
-            <input placeholder="Seller CNIC Number" name="sellerCNIC" onChange={handleChange} className="input-field" />
-            <input placeholder="Seller Name" name="sellerName" onChange={handleChange} className="input-field" />
-            <input placeholder="Father Name" name="fatherName" onChange={handleChange} className="input-field" />
-            <input placeholder="Address" name="address" onChange={handleChange} className="input-field" />
-            <input placeholder="Phone Number" name="phone" onChange={handleChange} className="input-field" />
-            <input placeholder="Purchase Price" name="purchaseprice" onChange={handleChange} className="input-field" />
+            <input placeholder="Seller CNIC Number" name="sellerCNIC" onChange={handleChange} className="inputClass" />
+            <input placeholder="Seller Name" name="sellerName" onChange={handleChange} className="inputClass" />
+            <input placeholder="Father Name" name="fatherName" onChange={handleChange} className="inputClass" />
+            <input placeholder="Address" name="address" onChange={handleChange} className="inputClass" />
+            <input placeholder="Phone Number" name="phone" onChange={handleChange} className="inputClass" />
+            <input placeholder="Purchase Price" name="purchaseprice" onChange={handleChange} className="inputClass" />
           </div>
           <hr className="my-6 border-gray-300" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -154,14 +157,14 @@ export default function AddBike() {
           <hr className="my-6 border-gray-300" />
           <h3 className="font-semibold mb-3 text-gray-700">B. Bike Registration Details</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input placeholder="Registration Number" name="registrationNumber" onChange={handleChange} className="input-field" />
-            <input placeholder="Chassis Number" name="chassisNumber" onChange={handleChange} className="input-field" />
-            <input placeholder="Engine Number" name="engineNumber" onChange={handleChange} className="input-field" />
-            <input placeholder="Horse Power (HP)" name="hp" onChange={handleChange} className="input-field" />
-            <input placeholder="Model / Year" name="modelYear" onChange={handleChange} className="input-field" />
-            <input placeholder="Colour" name="color" onChange={handleChange} className="input-field" />
-            <input placeholder="Maker / Company" name="maker" onChange={handleChange} className="input-field" />
-            <select name="originalPlates" onChange={handleChange} className="input-field">
+            <input placeholder="Registration Number" name="registrationNumber" onChange={handleChange} className="inputClass" />
+            <input placeholder="Chassis Number" name="chassisNumber" onChange={handleChange} className="inputClass" />
+            <input placeholder="Engine Number" name="engineNumber" onChange={handleChange} className="inputClass" />
+            <input placeholder="Horse Power (HP)" name="hp" onChange={handleChange} className="inputClass" />
+            <input placeholder="Model / Year" name="modelYear" onChange={handleChange} className="inputClass" />
+            <input placeholder="Colour" name="color" onChange={handleChange} className="inputClass" />
+            <input placeholder="Maker / Company" name="maker" onChange={handleChange} className="inputClass" />
+            <select name="originalPlates" onChange={handleChange} className="inputClass">
               <option value="">Original Number Plates Available?</option>
               <option value="Yes">Yes</option>
               <option value="No">No</option>
@@ -170,16 +173,28 @@ export default function AddBike() {
 
           <hr className="my-6 border-gray-300" />
           <h3 className="font-semibold mb-3 text-gray-700">C. Verification Details</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">CPLC Checked Date</label>
+
+            
+            <input placeholder="CPLC Checked Date" name="SellercplcDate" type="date" onChange={handleChange} className="inputClass" />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input placeholder="CPLC Checked Date" name="SellercplcDate" type="date" onChange={handleChange} className="input-field" />
-            <input placeholder="CPLC Checked Time" name="SellercplcTime" type="time" onChange={handleChange} className="input-field" />
-            <select name="SellercplcStatus" onChange={handleChange} className="input-field">
+
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">CPLC Checked Time</label>
+
+            
+            <input placeholder="CPLC Checked Time" name="SellercplcTime" type="time" onChange={handleChange} className="inputClass" />
+          </div>
+          </div>
+            <select name="SellercplcStatus" onChange={handleChange} className="inputClass">
               <option value="">CPLC Status</option>
               <option value="Clear">Clear</option>
               <option value="Reported">Reported</option>
               <option value="Not Checked">Not Checked</option>
             </select>
-            <input placeholder="Operator Number" name="SelleroperatorNumber" onChange={handleChange} className="input-field" />
+            <input placeholder="Operator Number" name="SelleroperatorNumber" onChange={handleChange} className="inputClass" />
           </div>
 
           <hr className="my-6 border-gray-300" />
@@ -193,13 +208,20 @@ export default function AddBike() {
           <hr className="my-6 border-gray-300" />
           <h3 className="font-semibold mb-3 text-gray-700">E. Owner Information</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input placeholder="1 Owner Name" name="1ownerName" onChange={handleChange} className="input-field" />
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">1 Owner Name</label>
+
+            
+            <input placeholder="1 Owner Name" name="1ownerName" onChange={handleChange} className="inputClass" />
+          </div>
             <ImageUploader label="CNIC Front Photo First Owner " onChange={(e) => handleFileChange(e, "front1ownerCNIC")} />
             <ImageUploader label="Back Photo First Owner CNIC " onChange={(e) => handleFileChange(e, "back1ownerCNIC")} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">2 Owner Name</label>
 
-            <input placeholder="2 Owner Name" name="2ownerName" onChange={handleChange} className="input-field" />
+            
+            <input placeholder="2 Owner Name" name="2ownerName" onChange={handleChange} className="inputClass" />
+          </div>
             <ImageUploader label="Front Photo Second Owner CNIC " onChange={(e) => handleFileChange(e, "front2ownerCNIC")} />
             <ImageUploader label="Back Photo Second Owner CNIC " onChange={(e) => handleFileChange(e, "front2ownerCNIC")} />
           </div>
@@ -221,8 +243,8 @@ export default function AddBike() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <ImageUploader label="Repair Bill Photo 1" onChange={(e) => handleFileChange(e, "repairBill1")} />
             <ImageUploader label="Repair Bill Photo 2" onChange={(e) => handleFileChange(e, "repairBill2")} />
-            <input placeholder="Description" name="repairDescription" onChange={handleChange} className="input-field" />
-            <input placeholder="Cost" name="repairCost" type="number" onChange={handleChange} className="input-field" />
+            <input placeholder="Description" name="repairDescription" onChange={handleChange} className="inputClass" />
+            <input placeholder="Cost" name="repairCost" type="number" onChange={handleChange} className="inputClass" />
           </div>
         </FormSection>
       ),
@@ -233,33 +255,33 @@ export default function AddBike() {
         <FormSection title="Sale / Customer Info">
                     <div className="grid grid-cols-1 mb-4 sm:grid-cols-2 gap-4">
 
-            <input placeholder="Buyer Bill Number " name="BuyerbillNumber" onChange={handleChange} className="input-field" />
+            <input placeholder="Buyer Bill Number " name="BuyerbillNumber" onChange={handleChange} className="inputClass" />
          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             
-            <input placeholder="Account Number" name="accountNumber" onChange={handleChange} className="input-field" />
+            <input placeholder="Account Number" name="accountNumber" onChange={handleChange} className="inputClass" />
            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Sale Date</label>
         
-            <input placeholder="Sale Date" name="saleDate" type="date" onChange={handleChange} className="input-field" />
+            <input placeholder="Sale Date" name="saleDate" type="date" onChange={handleChange} className="inputClass" />
 </div>
 
 <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Sale Time</label>
         
-            <input placeholder="Sale Time" name="saleTime" type="time" onChange={handleChange} className="input-field" />
+            <input placeholder="Sale Time" name="saleTime" type="time" onChange={handleChange} className="inputClass" />
 </div>
-            <input placeholder="Buyer Name" name="buyerName" onChange={handleChange} className="input-field" />
-            <input placeholder="Buyer CNIC Number" name="buyerCNIC" onChange={handleChange} className="input-field" />
-            <input placeholder="Buyer Phone Number" name="buyerPhone" onChange={handleChange} className="input-field" />
-            <input placeholder="Buyer Address" name="buyerAddress" onChange={handleChange} className="input-field" />
-            <input placeholder="Sale Price" name="salePrice" type="number" onChange={handleChange} className="input-field" />
-            <select name="paymentMethod" onChange={handleChange} className="input-field">
+            <input placeholder="Buyer Name" name="buyerName" onChange={handleChange} className="inputClass" />
+            <input placeholder="Buyer CNIC Number" name="buyerCNIC" onChange={handleChange} className="inputClass" />
+            <input placeholder="Buyer Phone Number" name="buyerPhone" onChange={handleChange} className="inputClass" />
+            <input placeholder="Buyer Address" name="buyerAddress" onChange={handleChange} className="inputClass" />
+            <input placeholder="Sale Price" name="salePrice" type="number" onChange={handleChange} className="inputClass" />
+            <select name="paymentMethod" onChange={handleChange} className="inputClass">
             <option value="">Payment Method</option>
 
               <option value="Cash">Cash</option>
               <option value="Installment">Installment</option>
             </select>
-            <select name="fileHandoverStatus" onChange={handleChange} className="input-field">
+            <select name="fileHandoverStatus" onChange={handleChange} className="inputClass">
               <option value="">File / Registration Book Handover Status</option>
               <option value="With Showroom">With Showroom</option>
               <option value="Handed to Customer">Handed to Customer</option>
@@ -279,7 +301,7 @@ export default function AddBike() {
             
              <div className="flex flex-col">
             <label className="font-semibold text-gray-700 mb-1">File Handover Date</label>
-                       <input placeholder="File Handover Date" name="fileHandoverDate" type="date" onChange={handleChange} className="input-field" />
+                       <input placeholder="File Handover Date" name="fileHandoverDate" type="date" onChange={handleChange} className="inputClass" />
 
           </div>
 
@@ -296,20 +318,20 @@ export default function AddBike() {
             <div className="flex flex-col">
             <label className="font-semibold text-gray-700 mb-1">CPLC Checked Date</label>
 
-            <input placeholder="CPLC Checked Date" name="BuyercplcDate" type="date" onChange={handleChange} className="input-field" />
+            <input placeholder="CPLC Checked Date" name="BuyercplcDate" type="date" onChange={handleChange} className="inputClass" />
           </div>
                       <div className="flex flex-col">
             <label className="font-semibold text-gray-700 mb-1">CPLC Checked Time</label>
 
-            <input placeholder="CPLC Checked Time" name="BuyercplcTime" type="time" onChange={handleChange} className="input-field" />
+            <input placeholder="CPLC Checked Time" name="BuyercplcTime" type="time" onChange={handleChange} className="inputClass" />
           </div>
-            <select name="BuyercplcStatus" onChange={handleChange} className="input-field">
+            <select name="BuyercplcStatus" onChange={handleChange} className="inputClass">
               <option value="">CPLC Status</option>
               <option value="Clear">Clear</option>
               <option value="Reported">Reported</option>
               <option value="Not Checked">Not Checked</option>
             </select>
-            <input placeholder="Operator Number" name="BuyeroperatorNumber" onChange={handleChange} className="input-field" />
+            <input placeholder="Operator Number" name="BuyeroperatorNumber" onChange={handleChange} className="inputClass" />
           </div>
 
         </FormSection>

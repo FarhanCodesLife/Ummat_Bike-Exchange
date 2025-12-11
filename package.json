@@ -13,6 +13,7 @@
     "axios": "^1.13.2",
     "cloudinary": "^2.8.0",
     "firebase": "^12.6.0",
+    "lucide-react": "^0.560.0",
     "multer": "^2.0.2",
     "next": "^16.0.7",
     "next-connect": "^1.0.0",
