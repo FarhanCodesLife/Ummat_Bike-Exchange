@@ -42,13 +42,6 @@ export default function SingleBikeView({ params }) {
   // ALL IMAGE KE KEYS ALAG RAKHO
   // ------------------------------------
   const photoKeys = [
-    "frontPhoto",
-    "backPhoto",
-    "leftPhoto",
-    "rightPhoto",
-    "meterPhoto",
-    "enginePhoto",
-    "chassisPhoto",
     "frontsellerCNIC",
     "backsellerCNIC",
     "shopSlip",
@@ -69,8 +62,6 @@ export default function SingleBikeView({ params }) {
     "buyerBackCNICPhoto",
     "buyerWithBikePhoto",
     "saleSlip",
-    "salePhotos1",
-    "salePhotos2",
     "fileHandOwerSlip"
   ];
 
@@ -102,7 +93,44 @@ export default function SingleBikeView({ params }) {
           <Detail label="Color" value={bike.color} />
           <Detail label="Maker" value={bike.maker} />
           <Detail label="Original Plates" value={bike.originalPlates} />
+         
         </div>
+{/* BIKE REGISTRATION IMAGES */}
+<Divider title="Registration Images" />
+
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+  {[
+    "page1",
+    "page2",
+    "page3",
+    "page4",
+    "bookFront",
+    "bookBack",
+    "smartFront",
+    "smartBack",
+    "front1ownerCNIC",
+    "back1ownerCNIC",
+    "front2ownerCNIC",
+    "back2ownerCNIC",
+  ].map((key) =>
+    bike[key] ? (
+      <div
+        key={key}
+        className="cursor-pointer"
+        onClick={() => setPreviewImg(bike[key])}
+      >
+        <Image
+          src={bike[key]}
+          alt={key}
+          width={300}
+          height={200}
+          className="rounded shadow-sm object-cover h-32 w-full"
+        />
+        <p className="text-center text-sm mt-1">{key}</p>
+      </div>
+    ) : null
+  )}
+</div>
 
 
                 <Divider title="Purchase Info" />
@@ -118,9 +146,39 @@ export default function SingleBikeView({ params }) {
           <Detail label="Phone" value={bike.phone} />
           <Detail label="Address" value={bike.address} />
           <Detail label="Purchase Price" value={bike.purchaseprice} />
+
+         
         </div>
 
-      
+      {/* PURCHASE DOCUMENT IMAGES */}
+<Divider title="Purchase Documents" />
+
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+  {[
+    "frontsellerCNIC",
+    "backsellerCNIC",
+    "shopSlip",
+    "sellerwithbikephoto",
+  ].map((key) =>
+    bike[key] ? (
+      <div
+        key={key}
+        className="cursor-pointer"
+        onClick={() => setPreviewImg(bike[key])}
+      >
+        <Image
+          src={bike[key]}
+          alt={key}
+          width={300}
+          height={200}
+          className="rounded shadow-sm object-cover h-32 w-full"
+        />
+        <p className="text-center text-sm mt-1">{key}</p>
+      </div>
+    ) : null
+  )}
+</div>
+
 
         <Divider title="Purchase Verification Details" />
 
@@ -144,7 +202,38 @@ export default function SingleBikeView({ params }) {
           <Detail label="Sale Price" value={bike.salePrice} />
           <Detail label="Payment Method" value={bike.paymentMethod} />
           <Detail label="File Handover Status" value={bike.fileHandoverStatus} />
+
+         
         </div>
+{/* BUYER DOCUMENT IMAGES */}
+<Divider title="Buyer Documents" />
+
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+  {[
+    "buyerFrontCNICPhoto",
+    "buyerBackCNICPhoto",
+    "buyerWithBikePhoto",
+    "saleSlip",
+    "fileHandOwerSlip",
+  ].map((key) =>
+    bike[key] ? (
+      <div
+        key={key}
+        className="cursor-pointer"
+        onClick={() => setPreviewImg(bike[key])}
+      >
+        <Image
+          src={bike[key]}
+          alt={key}
+          width={300}
+          height={200}
+          className="rounded shadow-sm object-cover h-32 w-full"
+        />
+        <p className="text-center text-sm mt-1">{key}</p>
+      </div>
+    ) : null
+  )}
+</div>
 
  <Divider title="Buyer Verification Details" />
 
@@ -155,7 +244,9 @@ export default function SingleBikeView({ params }) {
           <Detail label="Operator Number" value={bike.BuyeroperatorNumber} />
         </div>
         {/* ------------------- ALL IMAGES SECTION ------------------- */}
-        <Divider title="All Uploaded Photos" />
+
+
+        {/* <Divider title="All Uploaded Photos" />
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {photoKeys.map((key) =>
@@ -176,7 +267,7 @@ export default function SingleBikeView({ params }) {
               </div>
             ) : null
           )}
-        </div>
+        </div> */}
       </div>
 
       {/* ------------------- IMAGE MODAL ------------------- */}

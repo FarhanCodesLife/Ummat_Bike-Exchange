@@ -250,12 +250,12 @@ export default function EditBike() {
             {renderImages(["front2ownerCNIC", "back2ownerCNIC"])}
           </div>
 
-          <hr className="my-6" />
+          {/* <hr className="my-6" />
 
           <h3 className="font-semibold mb-3">Bike Photos</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {renderImages(["frontPhoto", "backPhoto", "leftPhoto", "rightPhoto", "meterPhoto", "enginePhoto", "chassisPhoto"])}
-          </div>
+            {renderImages(["frontPhoto", "backPhoto", "leftPhoto", "rightPhoto", ])}
+          </div> */}
         </FormSection>
       ),
     },
@@ -344,7 +344,7 @@ export default function EditBike() {
 
              
 
-            {renderImages(["buyerFrontCNICPhoto", "buyerBackCNICPhoto", "buyerWithBikePhoto", "saleSlip", "salePhotos1", "salePhotos2"])}
+            {renderImages(["buyerFrontCNICPhoto", "buyerBackCNICPhoto", "buyerWithBikePhoto", "saleSlip",])}
 
  <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">File Handover Date</label>
 

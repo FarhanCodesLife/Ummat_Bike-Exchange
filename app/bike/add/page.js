@@ -252,13 +252,13 @@ export default function AddBike() {
             <ImageUploader label="Back Photo Second Owner CNIC " required  onChange={(e) => handleFileChange(e, "front2ownerCNIC")} />
           </div>
 
-          <hr className="my-6 border-gray-300" />
+          {/* <hr className="my-6 border-gray-300" />
           <h3 className="font-semibold mb-3 text-gray-700">F. Bike Photos</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {["frontPhoto", "backPhoto", "leftPhoto", "rightPhoto", "meterPhoto", "enginePhoto", "chassisPhoto"].map(key => (
+            {["frontPhoto", "backPhoto", "leftPhoto", "rightPhoto", ].map(key => (
               <ImageUploader key={key} label={key} required  onChange={(e) => handleFileChange(e, key)} />
             ))}
-          </div>
+          </div> */}
         </FormSection>
       ),
     },
@@ -322,9 +322,9 @@ export default function AddBike() {
             <ImageUploader label="Buyer CNIC Back Photo" required  onChange={(e) => handleFileChange(e, "buyerBackCNICPhoto")} />
             <ImageUploader label="Buyer With Bike Photo" required  onChange={(e) => handleFileChange(e, "buyerWithBikePhoto")} />
             <ImageUploader label="Sale Slip" required  onChange={(e) => handleFileChange(e, "saleSlip")} />
-            <ImageUploader label="Sale Photos (Front / Side / Meter)" required  onChange={(e) => handleFileChange(e, "salePhotos1")} />
+            {/* <ImageUploader label="Sale Photos (Front / Side / Meter)" required  onChange={(e) => handleFileChange(e, "salePhotos1")} />
             <ImageUploader label="Sale Photos (Front / Side / Meter)" required  onChange={(e) => handleFileChange(e, "salePhotos2")} />
-            
+             */}
              <div className="flex flex-col">
             <label className="font-semibold text-gray-700 mb-1">File Handover Date</label>
                        <input placeholder="File Handover Date" name="fileHandoverDate" type="date" required  onChange={handleChange} className="inputClass" />
