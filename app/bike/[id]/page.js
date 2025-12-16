@@ -9,11 +9,9 @@ import { db } from "../../../lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import ProtectedAdmin from "@/components/ProtectedAdmin";
 
-
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
-// 🔥 All image keys used in AddBike
 const IMAGE_KEYS = [
   "frontsellerCNIC", "backsellerCNIC", "shopSlip", "sellerwithbikephoto",
   "page1", "page2", "page3", "page4", "bookFront", "bookBack",
@@ -32,13 +30,13 @@ const IMAGE_KEYS = [
 export default function EditBike() {
   const { id } = useParams();
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState(0);
 
   const [formData, setFormData] = useState({});
   const [files, setFiles] = useState({});
   const [existingFiles, setExistingFiles] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // 📌 Fetch existing bike data
   useEffect(() => {
     if (!id) return;
     const fetchBike = async () => {
@@ -48,20 +46,23 @@ export default function EditBike() {
       if (!snapshot.exists()) return alert("Bike not found!");
 
       const data = snapshot.data();
-      setFormData(data);
+      setFormData({
+        ...data,
+        owner1Name: data["1ownerName"] || "",
+        owner2Name: data["2ownerName"] || ""
+      });
 
       const urls = {};
       IMAGE_KEYS.forEach((k) => {
         if (data[k]) urls[k] = data[k];
       });
-
       setExistingFiles(urls);
     };
-
     fetchBike();
   }, [id]);
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleFileChange = (e, key) =>
     setFiles({ ...files, [key]: e.target.files[0] });
@@ -75,7 +76,6 @@ export default function EditBike() {
       method: "POST",
       body: fd,
     });
-
     const data = await res.json();
     if (!data.secure_url) throw new Error("Cloudinary upload failed");
     return data.secure_url;
@@ -84,20 +84,25 @@ export default function EditBike() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const uploadedUrls = { ...existingFiles };
+      await Promise.all(
+        IMAGE_KEYS.map(async (key) => {
+          if (files[key]) uploadedUrls[key] = await uploadToCloudinary(files[key]);
+        })
+      );
 
-      for (const key of IMAGE_KEYS) {
-        if (files[key]) {
-          uploadedUrls[key] = await uploadToCloudinary(files[key]);
-        }
-      }
+      const updatedData = {
+        ...formData,
+        "1ownerName": formData.owner1Name,
+        "2ownerName": formData.owner2Name,
+        ...uploadedUrls
+      };
 
       const docRef = doc(db, "bikes", id);
-      await updateDoc(docRef, { ...formData, ...uploadedUrls });
+      await updateDoc(docRef, updatedData);
 
-      alert("Bike updated successfully!");
+      // alert("Bike updated successfully!");
       router.push("/bike");
     } catch (err) {
       console.error(err);
@@ -107,7 +112,6 @@ export default function EditBike() {
     }
   };
 
-  // Image field renderer
   const renderImages = (keys) =>
     keys.map((k) => (
       <ImageUploader
@@ -384,9 +388,23 @@ export default function EditBike() {
         <ProtectedAdmin>
 
     <Layout>
+
+       {loading && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl text-center">
+            <h2 className="font-bold text-xl">Saving Record</h2>
+            <p className="text-gray-600 mt-2">Uploading images...</p>
+            <div className="mt-4 w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          </div>
+        </div>
+      )}
       <h2 className="text-3xl font-bold mb-6 text-gray-800">Edit Bike</h2>
 
-      <Tabs tabs={tabs} />
+      <Tabs
+      tabs={tabs}
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+    />
 
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mt-6">
         <button

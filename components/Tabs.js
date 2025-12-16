@@ -1,24 +1,21 @@
-import { useState } from "react";
-
-export default function Tabs({ tabs }) {
-  const [active, setActive] = useState(0);
-
+export default function Tabs({ tabs, activeTab, setActiveTab }) {
   return (
-    <div>
-      <div className="flex border-b mb-4">
-        {tabs.map((tab, idx) => (
+    <>
+      <div className="flex gap-2 mb-6">
+        {tabs.map((t, i) => (
           <button
-            key={idx}
-            onClick={() => setActive(idx)}
-            className={`px-4 py-2 -mb-px font-medium border-b-2 ${
-              active === idx ? "border-blue-600 text-blue-600" : "border-transparent"
+            key={i}
+            onClick={() => setActiveTab(i)}
+            className={`px-4 py-2 rounded ${
+              activeTab === i ? "bg-blue-600 text-white" : "bg-gray-200"
             }`}
           >
-            {tab.label}
+            {t.label}
           </button>
         ))}
       </div>
-      <div>{tabs[active].content}</div>
-    </div>
+
+      <div>{tabs[activeTab].content}</div>
+    </>
   );
 }

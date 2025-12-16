@@ -1,51 +1,100 @@
 "use client";
 import { useState, useEffect } from "react";
 
-export default function ImageUploader({ label, onChange, existingUrl }) {
+export default function ImageUploader({
+  label,
+  onChange,
+  existingUrl,
+  required = false,
+}) {
   const [preview, setPreview] = useState("");
+  const [fileName, setFileName] = useState("");
 
-  // If existing image comes from Firestore → set preview
+  /* ---------------- EXISTING IMAGE (EDIT MODE) ---------------- */
   useEffect(() => {
     if (existingUrl) {
       setPreview(existingUrl);
+      setFileName("Saved Image");
     }
   }, [existingUrl]);
 
+  /* ---------------- HANDLE FILE ---------------- */
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setPreview(URL.createObjectURL(file)); // live preview
-    }
+    if (!file) return;
+
+    setPreview(URL.createObjectURL(file));
+    setFileName(file.name);
+
     onChange(e); // send file to parent
   };
 
+  /* ---------------- REMOVE IMAGE ---------------- */
+  const removeImage = () => {
+    setPreview("");
+    setFileName("");
+    onChange({ target: { files: [] } });
+  };
+
   return (
-    <div className="mb-4 p-4 border rounded-lg bg-white shadow-sm">
+    <div className="p-4 border rounded-xl bg-white shadow-sm transition hover:shadow-md">
+      {/* Header */}
       <div className="flex justify-between items-center mb-2">
-        <label className="font-semibold">{label}</label>
+        <label className="font-semibold text-gray-700">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
 
         {preview ? (
-          <span className="text-green-600 font-semibold text-sm">Uploaded ✔</span>
+          <span className="text-green-600 text-xs font-bold">
+            Uploaded ✔
+          </span>
         ) : (
-          <span className="text-red-600 font-semibold text-sm">Missing ✘</span>
+          <span className="text-red-500 text-xs font-bold">
+            Missing ✘
+          </span>
         )}
       </div>
 
-      {/* Image Preview */}
+      {/* Preview */}
       {preview && (
-        <img
-          src={preview}
-          alt="Preview"
-          className="h-28 w-28 object-cover rounded border mt-2"
-        />
+        <div className="relative w-32 h-32 mb-3">
+          <img
+            src={preview}
+            alt="Preview"
+            className="w-full h-full object-cover rounded-lg border"
+          />
+
+          <button
+            type="button"
+            onClick={removeImage}
+            className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
+          >
+            ✕
+          </button>
+        </div>
       )}
 
+      {/* Input */}
       <input
         type="file"
         accept="image/*"
+        capture="environment"
         onChange={handleFileChange}
-        className="mt-2"
+        className="block w-full text-sm text-gray-600
+                   file:mr-4 file:py-2 file:px-4
+                   file:rounded-lg file:border-0
+                   file:text-sm file:font-semibold
+                   file:bg-blue-50 file:text-blue-700
+                   hover:file:bg-blue-100"
       />
+
+      {/* Filename */}
+      {fileName && (
+        <p className="mt-1 text-xs text-gray-500 truncate">
+          {fileName}
+        </p>
+      )}
     </div>
   );
 }

@@ -25,11 +25,13 @@ interface BikeType {
 
 export default function Home() {
   const [readyBikes, setReadyBikes] = useState<BikeType[]>([]);
+const [allBikesCount, setAllBikesCount] = useState(0);
 
-  useEffect(() => {
-    const getReadyBikes = async () => {
-      const snap = await getDocs(collection(db, "bikes"));
-      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as BikeType[];
+useEffect(() => {
+  const getReadyBikes = async () => {
+    const snap = await getDocs(collection(db, "bikes"));
+    const list = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as BikeType[];
+    setAllBikesCount(list.length);
 
       // Ready to Sell: Part1 complete but not sold yet
       const readyToSell = list.filter(
@@ -75,8 +77,10 @@ export default function Home() {
                 <Bike size={28} />
               </div>
               <div>
-                <p className="text-xl font-semibold">View Bikes</p>
-                <p className="text-sm opacity-80">Manage all bike records</p>
+                <p className="text-xl font-semibold">View Bikes </p>
+                {/* <p className="text-sm opacity-80">Manage all bike records</p> */}
+                        <p className="text-3xl font-bold mt-1">{allBikesCount}</p>
+
               </div>
             </div>
           </div>

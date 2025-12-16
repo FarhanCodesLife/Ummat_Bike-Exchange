@@ -3,136 +3,113 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Layout from "../../../components/Layout";
 import Tabs from "../../../components/Tabs";
-import FormSection from "../../../components/FormSection";
 import ImageUploader from "../../../components/ImageUploader";
 import { db } from "../../../lib/firebase";
-import { collection, addDoc, query, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, addDoc } from "firebase/firestore";
+import imageCompression from "browser-image-compression";
+import FormSection from "../../../components/FormSection";
+import ProtectedAdmin from "@/components/ProtectedAdmin";
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
-const inputClass =
-    "w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all duration-200 outline-none text-gray-700";
-
 export default function AddBike() {
   const router = useRouter();
+
   const [formData, setFormData] = useState({});
   const [files, setFiles] = useState({});
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
-  // -----------------------------------------
-  // 🔥 AUTO GENERATE BILL NUMBER
-  // -----------------------------------------
+  /* ---------------- AUTO SAVE DRAFT ---------------- */
   useEffect(() => {
-    fetchNextBillNumber();
+    localStorage.setItem(
+      "bikeDraft",
+      JSON.stringify({ formData, files })
+    );
+  }, [formData, files]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("bikeDraft");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setFormData(parsed.formData || {});
+      setFiles(parsed.files || {});
+    }
   }, []);
 
-  const fetchNextBillNumber = async () => {
-    try {
-      const q = query(
-        collection(db, "bikes"),
-        orderBy("billNumber", "desc"),
-        limit(1)
-      );
-
-      const snap = await getDocs(q);
-
-      if (!snap.empty) {
-        const lastBill = snap.docs[0].data().billNumber;
-        const num = parseInt(lastBill.replace("B-", ""), 10);
-        const nextBill = `B-${num + 1}`;
-
-        setFormData((prev) => ({ ...prev, billNumber: nextBill }));
-      } else {
-        setFormData((prev) => ({ ...prev, billNumber: "B-101" }));
-      }
-    } catch (err) {
-      console.error("Bill number error:", err);
-    }
-  };
-  // -----------------------------------------
-
+  /* ---------------- INPUT HANDLERS ---------------- */
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleFileChange = (e, key) => {
-    setFiles({ ...files, [key]: e.target.files[0] });
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setFiles((prev) => ({
+      ...prev,
+      [key]: file,
+    }));
   };
 
+  /* ---------------- IMAGE COMPRESS ---------------- */
+  const compressImage = async (file) => {
+    return await imageCompression(file, {
+      maxSizeMB: 0.7,
+      maxWidthOrHeight: 1600,
+      useWebWorker: true,
+    });
+  };
+
+  /* ---------------- CLOUDINARY ---------------- */
   const uploadToCloudinary = async (file) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
+    const compressed = await compressImage(file);
+
+    const fd = new FormData();
+    fd.append("file", compressed);
+    fd.append("upload_preset", UPLOAD_PRESET);
 
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
+      { method: "POST", body: fd }
     );
 
     const data = await res.json();
-    if (!data.secure_url) throw new Error("Cloudinary upload failed");
     return data.secure_url;
   };
 
+  /* ---------------- SUBMIT ---------------- */
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    // Ensure required fields are filled before uploading
-    const requiredFields = [
-      "SellerbillNumber",
-      "purchaseDate",
-      "purchaseTime",
-      "sellerCNIC",
-      "sellerName",
-      "registrationNumber",
-      "chassisNumber",
-      "engineNumber",
-      "hp",
-      "modelYear",
-      "color",
-      "maker",
-    ];
+    try {
+      const uploadedImages = {};
 
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        alert(`Please fill out the required field: ${field}`);
-        setLoading(false);
-        return;
+      for (const key in files) {
+        uploadedImages[key] = await uploadToCloudinary(files[key]);
       }
+
+      await addDoc(collection(db, "bikes"), {
+        ...formData,
+        images: uploadedImages,
+        createdAt: new Date(),
+      });
+
+      localStorage.removeItem("bikeDraft");
+      alert("Bike saved successfully");
+      router.push("/bike");
+    } catch (err) {
+      console.error(err);
+      alert("Error saving bike");
+    } finally {
+      setLoading(false);
     }
-
-    // Upload all files to Cloudinary
-    const uploadedUrls = {};
-    for (const key in files) {
-      if (files[key]) {
-        uploadedUrls[key] = await uploadToCloudinary(files[key]);
-      }
-    }
-
-    // Add document to Firestore
-    await addDoc(collection(db, "bikes"), {
-      ...formData,
-      ...uploadedUrls,
-      createdAt: new Date(),
-    });
-
-    alert("Bike added successfully!");
-    router.push("/bike");
-  } catch (err) {
-    console.error(err);
-    alert("Error: " + err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const tabs = [
     {
@@ -366,10 +343,25 @@ export default function AddBike() {
   ];
 
   return (
+            <ProtectedAdmin>
+    
     <Layout>
+       {loading && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl text-center">
+            <h2 className="font-bold text-xl">Saving Record</h2>
+            <p className="text-gray-600 mt-2">Uploading images...</p>
+            <div className="mt-4 w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          </div>
+        </div>
+      )}
       <h2 className="text-3xl font-bold mb-6 text-gray-800">Add New Bike</h2>
 
-      <Tabs tabs={tabs} />
+     <Tabs
+  tabs={tabs}
+  activeTab={activeTab}
+  setActiveTab={setActiveTab}
+/>
 
       <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-md">
         <button
@@ -381,5 +373,7 @@ export default function AddBike() {
         </button>
       </form>
     </Layout>
+            </ProtectedAdmin>
+    
   );
 }
