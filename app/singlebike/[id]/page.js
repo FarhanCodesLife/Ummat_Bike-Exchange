@@ -1,3 +1,5 @@
+// SingleBikeView.js (Updated)
+
 "use client";
 import { use, useEffect, useState } from "react";
 import { db } from "../../../lib/firebase";
@@ -22,7 +24,19 @@ export default function SingleBikeView({ params }) {
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        setBike({ id, ...docSnap.data() });
+        const data = docSnap.data();
+
+        // **IMAGE MERGE LOGIC START**
+        // Naye records mein images nested 'images' field mein hain.
+        // Hum unhe main data object ke saath merge kar dete hain
+        // taaki view component mein access karna aasan ho (bike.frontsellerCNIC)
+        const mergedData = {
+          ...data,
+          ...(data.images || {}), // Nested images ko root level par spread karein
+        };
+        // **IMAGE MERGE LOGIC END**
+
+        setBike({ id, ...mergedData });
       }
       setLoading(false);
     } catch (err) {
@@ -39,7 +53,7 @@ export default function SingleBikeView({ params }) {
   if (!bike) return <p className="text-center py-10">Bike Not Found</p>;
 
   // ------------------------------------
-  // ALL IMAGE KE KEYS ALAG RAKHO
+  // ALL IMAGE KE KEYS ALAG RAKHO (No change required here)
   // ------------------------------------
   const photoKeys = [
     "frontsellerCNIC",
@@ -80,9 +94,8 @@ export default function SingleBikeView({ params }) {
           Bike Details (View Only)
         </h1>
 
-
-
-  <Divider title="Bike Registration Details" />
+        {/* BIKE REGISTRATION DETAILS */}
+        <Divider title="Bike Registration Details" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Detail label="Registration Number" value={bike.registrationNumber} />
@@ -93,163 +106,27 @@ export default function SingleBikeView({ params }) {
           <Detail label="Color" value={bike.color} />
           <Detail label="Maker" value={bike.maker} />
           <Detail label="Original Plates" value={bike.originalPlates} />
-         
-        </div>
-{/* BIKE REGISTRATION IMAGES */}
-<Divider title="Registration Images" />
 
-<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-  {[
-    "page1",
-    "page2",
-    "page3",
-    "page4",
-    "bookFront",
-    "bookBack",
-    "smartFront",
-    "smartBack",
-    "front1ownerCNIC",
-    "back1ownerCNIC",
-    "front2ownerCNIC",
-    "back2ownerCNIC",
-  ].map((key) =>
-    bike[key] ? (
-      <div
-        key={key}
-        className="cursor-pointer"
-        onClick={() => setPreviewImg(bike[key])}
-      >
-        <Image
-          src={bike[key]}
-          alt={key}
-          width={300}
-          height={200}
-          className="rounded shadow-sm object-cover h-32 w-full"
-        />
-        <p className="text-center text-sm mt-1">{key}</p>
-      </div>
-    ) : null
-  )}
-</div>
-
-
-                <Divider title="Purchase Info" />
-
-
-        {/* ------------------- BASIC INFO ------------------- */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Detail label="Purchase Bill Number" value={bike.SellerbillNumber} />
-          <Detail label="Purchase Date" value={bike.purchaseDate} />
-          <Detail label="Purchase Time" value={bike.purchaseTime} />
-          <Detail label="Seller Name" value={bike.sellerName} />
-          <Detail label="Seller CNIC" value={bike.sellerCNIC} />
-          <Detail label="Phone" value={bike.phone} />
-          <Detail label="Address" value={bike.address} />
-          <Detail label="Purchase Price" value={bike.purchaseprice} />
-
-         
         </div>
 
-      {/* PURCHASE DOCUMENT IMAGES */}
-<Divider title="Purchase Documents" />
-
-<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-  {[
-    "frontsellerCNIC",
-    "backsellerCNIC",
-    "shopSlip",
-    "sellerwithbikephoto",
-  ].map((key) =>
-    bike[key] ? (
-      <div
-        key={key}
-        className="cursor-pointer"
-        onClick={() => setPreviewImg(bike[key])}
-      >
-        <Image
-          src={bike[key]}
-          alt={key}
-          width={300}
-          height={200}
-          className="rounded shadow-sm object-cover h-32 w-full"
-        />
-        <p className="text-center text-sm mt-1">{key}</p>
-      </div>
-    ) : null
-  )}
-</div>
-
-
-        <Divider title="Purchase Verification Details" />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Detail label="CPLC Date" value={bike.SellercplcDate} />
-          <Detail label="CPLC Time" value={bike.SellercplcTime} />
-          <Detail label="CPLC Status" value={bike.SellercplcStatus} />
-          <Detail label="Operator Number" value={bike.SelleroperatorNumber} />
-        </div>
-
-        <Divider title="Buyer Info" />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Detail label="Buyer Bill Number" value={bike.BuyerbillNumber} />
-          <Detail label="Account Number" value={bike.accountNumber} />
-
-          <Detail label="Buyer Name" value={bike.buyerName} />
-          <Detail label="Buyer CNIC" value={bike.buyerCNIC} />
-          <Detail label="Buyer Phone" value={bike.buyerPhone} />
-          <Detail label="Buyer Address" value={bike.buyerAddress} />
-          <Detail label="Sale Price" value={bike.salePrice} />
-          <Detail label="Payment Method" value={bike.paymentMethod} />
-          <Detail label="File Handover Status" value={bike.fileHandoverStatus} />
-
-         
-        </div>
-{/* BUYER DOCUMENT IMAGES */}
-<Divider title="Buyer Documents" />
-
-<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-  {[
-    "buyerFrontCNICPhoto",
-    "buyerBackCNICPhoto",
-    "buyerWithBikePhoto",
-    "saleSlip",
-    "fileHandOwerSlip",
-  ].map((key) =>
-    bike[key] ? (
-      <div
-        key={key}
-        className="cursor-pointer"
-        onClick={() => setPreviewImg(bike[key])}
-      >
-        <Image
-          src={bike[key]}
-          alt={key}
-          width={300}
-          height={200}
-          className="rounded shadow-sm object-cover h-32 w-full"
-        />
-        <p className="text-center text-sm mt-1">{key}</p>
-      </div>
-    ) : null
-  )}
-</div>
-
- <Divider title="Buyer Verification Details" />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Detail label="CPLC Date" value={bike.BuyercplcDate} />
-          <Detail label="CPLC Time" value={bike.BuyercplcTime} />
-          <Detail label="CPLC Status" value={bike.BuyercplcStatus} />
-          <Detail label="Operator Number" value={bike.BuyeroperatorNumber} />
-        </div>
-        {/* ------------------- ALL IMAGES SECTION ------------------- */}
-
-
-        {/* <Divider title="All Uploaded Photos" />
+        {/* BIKE REGISTRATION IMAGES - AB YE DONO FORMAT SE IMAGES DIKHAYEGA */}
+        <Divider title="Registration Images" />
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {photoKeys.map((key) =>
+          {[
+            "page1",
+            "page2",
+            "page3",
+            "page4",
+            "bookFront",
+            "bookBack",
+            "smartFront",
+            "smartBack",
+            "front1ownerCNIC",
+            "back1ownerCNIC",
+            "front2ownerCNIC",
+            "back2ownerCNIC",
+          ].map((key) =>
             bike[key] ? (
               <div
                 key={key}
@@ -267,7 +144,121 @@ export default function SingleBikeView({ params }) {
               </div>
             ) : null
           )}
-        </div> */}
+        </div>
+
+
+        <Divider title="Purchase Info" />
+
+
+        {/* ------------------- PURCHASE INFO ------------------- */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Detail label="Purchase Bill Number" value={bike.SellerbillNumber} />
+          <Detail label="Purchase Date" value={bike.purchaseDate} />
+          <Detail label="Purchase Time" value={bike.purchaseTime} />
+          <Detail label="Seller Name" value={bike.sellerName} />
+          <Detail label="Seller CNIC" value={bike.sellerCNIC} />
+          <Detail label="Phone" value={bike.phone} />
+          <Detail label="Address" value={bike.address} />
+          <Detail label="Purchase Price" value={bike.purchaseprice} />
+
+
+        </div>
+
+        {/* PURCHASE DOCUMENT IMAGES - AB YE DONO FORMAT SE IMAGES DIKHAYEGA */}
+        <Divider title="Purchase Documents" />
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {[
+            "frontsellerCNIC",
+            "backsellerCNIC",
+            "shopSlip",
+            "sellerwithbikephoto",
+          ].map((key) =>
+            bike[key] ? (
+              <div
+                key={key}
+                className="cursor-pointer"
+                onClick={() => setPreviewImg(bike[key])}
+              >
+                <Image
+                  src={bike[key]}
+                  alt={key}
+                  width={300}
+                  height={200}
+                  className="rounded shadow-sm object-cover h-32 w-full"
+                />
+                <p className="text-center text-sm mt-1">{key}</p>
+              </div>
+            ) : null
+          )}
+        </div>
+
+
+        <Divider title="Purchase Verification Details" />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Detail label="CPLC Date" value={bike.SellercplcDate} />
+          <Detail label="CPLC Time" value={bike.SellercplcTime} />
+          <Detail label="CPLC Status" value={bike.SellercplcStatus} />
+          <Detail label="Operator Number" value={bike.SelleroperatorNumber} />
+        </div>
+
+        <Divider title="Buyer Info" />
+
+        {/* ------------------- BUYER INFO ------------------- */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Detail label="Buyer Bill Number" value={bike.BuyerbillNumber} />
+          <Detail label="Account Number" value={bike.accountNumber} />
+
+          <Detail label="Buyer Name" value={bike.buyerName} />
+          <Detail label="Buyer CNIC" value={bike.buyerCNIC} />
+          <Detail label="Buyer Phone" value={bike.buyerPhone} />
+          <Detail label="Buyer Address" value={bike.buyerAddress} />
+          <Detail label="Sale Price" value={bike.salePrice} />
+          <Detail label="Payment Method" value={bike.paymentMethod} />
+          <Detail label="File Handover Status" value={bike.fileHandoverStatus} />
+
+
+        </div>
+        {/* BUYER DOCUMENT IMAGES - AB YE DONO FORMAT SE IMAGES DIKHAYEGA */}
+        <Divider title="Buyer Documents" />
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {[
+            "buyerFrontCNICPhoto",
+            "buyerBackCNICPhoto",
+            "buyerWithBikePhoto",
+            "saleSlip",
+            "fileHandOwerSlip",
+          ].map((key) =>
+            bike[key] ? (
+              <div
+                key={key}
+                className="cursor-pointer"
+                onClick={() => setPreviewImg(bike[key])}
+              >
+                <Image
+                  src={bike[key]}
+                  alt={key}
+                  width={300}
+                  height={200}
+                  className="rounded shadow-sm object-cover h-32 w-full"
+                />
+                <p className="text-center text-sm mt-1">{key}</p>
+              </div>
+            ) : null
+          )}
+        </div>
+
+        <Divider title="Buyer Verification Details" />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Detail label="CPLC Date" value={bike.BuyercplcDate} />
+          <Detail label="CPLC Time" value={bike.BuyercplcTime} />
+          <Detail label="CPLC Status" value={bike.BuyercplcStatus} />
+          <Detail label="Operator Number" value={bike.BuyeroperatorNumber} />
+        </div>
+
       </div>
 
       {/* ------------------- IMAGE MODAL ------------------- */}

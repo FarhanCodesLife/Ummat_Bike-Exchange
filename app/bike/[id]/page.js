@@ -37,6 +37,10 @@ export default function EditBike() {
   const [existingFiles, setExistingFiles] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // Naya state: Image Clear functionality ke liye (Optional, but recommended)
+  // const [deletedKeys, setDeletedKeys] = useState({}); 
+
+
   useEffect(() => {
     if (!id) return;
     const fetchBike = async () => {
@@ -52,11 +56,24 @@ export default function EditBike() {
         owner2Name: data["2ownerName"] || ""
       });
 
+      // **IMAGE LOADING LOGIC UPDATE START**
       const urls = {};
+      const nestedImages = data.images || {}; // Agar 'images' object hai, to use load karein
+
       IMAGE_KEYS.forEach((k) => {
-        if (data[k]) urls[k] = data[k];
+        // 1. Pehle Naye Format (nested images object) mein dhoondhein
+        if (nestedImages[k]) {
+          urls[k] = nestedImages[k];
+        }
+        // 2. Agar wahan nahi mila, to Purane Format (root level) mein dhoondhein
+        else if (data[k]) {
+          urls[k] = data[k];
+        }
       });
+      // **IMAGE LOADING LOGIC UPDATE END**
+
       setExistingFiles(urls);
+      // console.log("Loaded Existing Image URLs:", urls); 
     };
     fetchBike();
   }, [id]);
@@ -66,6 +83,17 @@ export default function EditBike() {
 
   const handleFileChange = (e, key) =>
     setFiles({ ...files, [key]: e.target.files[0] });
+
+  // Agar aapne ImageUploader mein onClear prop add kiya hai, to is handler ko bhi implement karein
+  // const handleImageClear = (key) => {
+  //   setDeletedKeys((prev) => ({ ...prev, [key]: true }));
+  //   setFiles((prev) => {
+  //       const newFiles = { ...prev };
+  //       delete newFiles[key];
+  //       return newFiles;
+  //   });
+  // };
+
 
   const uploadToCloudinary = async (file) => {
     const fd = new FormData();
@@ -88,7 +116,13 @@ export default function EditBike() {
       const uploadedUrls = { ...existingFiles };
       await Promise.all(
         IMAGE_KEYS.map(async (key) => {
-          if (files[key]) uploadedUrls[key] = await uploadToCloudinary(files[key]);
+          if (files[key]) {
+            uploadedUrls[key] = await uploadToCloudinary(files[key]);
+          }
+          // Agar aapne deletedKeys use kiya hai, to yahan null set karein:
+          // else if (deletedKeys[key]) {
+          //    uploadedUrls[key] = null;
+          // }
         })
       );
 
@@ -96,7 +130,7 @@ export default function EditBike() {
         ...formData,
         "1ownerName": formData.owner1Name,
         "2ownerName": formData.owner2Name,
-        ...uploadedUrls
+        ...uploadedUrls // Images root level par save honge, jaisa aapka purana format tha
       };
 
       const docRef = doc(db, "bikes", id);
@@ -118,7 +152,9 @@ export default function EditBike() {
         key={k}
         label={k}
         existingUrl={existingFiles[k]}
+        currentFile={files[k]} // Agar aapne ImageUploader mein currentFile prop rakha hai
         onChange={(e) => handleFileChange(e, k)}
+      // onClear={() => handleImageClear(k)} // Agar aapne ImageUploader mein onClear prop add kiya hai
       />
     ));
 
@@ -135,35 +171,35 @@ export default function EditBike() {
 
 
             <input placeholder="Seller Bill Number " name="SellerbillNumber" value={formData.SellerbillNumber || ""} onChange={handleChange} className="input-field" />
-            </div>
+          </div>
 
           <hr className="my-6" />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Purchase Date</label>
-            <input type="date" name="purchaseDate" value={formData.purchaseDate || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Purchase Time</label>
-            <input type="time" name="purchaseTime" value={formData.purchaseTime || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Seller CNIC</label>
-            <input name="sellerCNIC" value={formData.sellerCNIC || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Seller Name</label>
-            <input name="sellerName" value={formData.sellerName || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Father Name</label>
-            <input name="fatherName" value={formData.fatherName || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Address</label>
-            <input name="address" value={formData.address || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Phone</label>
-            <input name="phone" value={formData.phone || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Purchase Price</label>
-            <input name="purchaseprice" value={formData.purchaseprice || ""} onChange={handleChange} className="input-field" />
-</div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Purchase Date</label>
+              <input type="date" name="purchaseDate" value={formData.purchaseDate || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Purchase Time</label>
+              <input type="time" name="purchaseTime" value={formData.purchaseTime || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Seller CNIC</label>
+              <input name="sellerCNIC" value={formData.sellerCNIC || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Seller Name</label>
+              <input name="sellerName" value={formData.sellerName || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Father Name</label>
+              <input name="fatherName" value={formData.fatherName || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Address</label>
+              <input name="address" value={formData.address || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Phone</label>
+              <input name="phone" value={formData.phone || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Purchase Price</label>
+              <input name="purchaseprice" value={formData.purchaseprice || ""} onChange={handleChange} className="input-field" />
+            </div>
           </div>
 
           <hr className="my-6" />
@@ -177,57 +213,57 @@ export default function EditBike() {
           <h3 className="font-semibold mb-3">Bike Registration Details</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Registration Number</label>
-            <input name="registrationNumber" value={formData.registrationNumber || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Chassis Number</label>
-            <input name="chassisNumber" value={formData.chassisNumber || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Engine Number</label>
-            <input name="engineNumber" value={formData.engineNumber || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Hp</label>
-            <input name="hp" value={formData.hp || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Model Year</label>
-            <input name="modelYear" value={formData.modelYear || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Color</label>
-            <input name="color" value={formData.color || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Maker</label>
-            <input name="maker" value={formData.maker || ""} onChange={handleChange} className="input-field" />
-</div>
+              <input name="registrationNumber" value={formData.registrationNumber || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Chassis Number</label>
+              <input name="chassisNumber" value={formData.chassisNumber || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Engine Number</label>
+              <input name="engineNumber" value={formData.engineNumber || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Hp</label>
+              <input name="hp" value={formData.hp || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Model Year</label>
+              <input name="modelYear" value={formData.modelYear || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Color</label>
+              <input name="color" value={formData.color || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Maker</label>
+              <input name="maker" value={formData.maker || ""} onChange={handleChange} className="input-field" />
+            </div>
 
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Original Plates</label>
-            <select name="originalPlates" value={formData.originalPlates || ""} onChange={handleChange} className="input-field">
-              <option value="">Original Plates?</option>
-              <option value="Yes">Yes</option>
-              <option value="No">No</option>
-            </select>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Original Plates</label>
+              <select name="originalPlates" value={formData.originalPlates || ""} onChange={handleChange} className="input-field">
+                <option value="">Original Plates?</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
           </div>
-</div>
 
           <hr className="my-6" />
 
           <h3 className="font-semibold mb-3">Verification</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Cplc Date</label>
-            <input type="date" name="SellercplcDate" value={formData.SellercplcDate || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Cplc Time</label>
-            <input type="time" name="SellercplcTime" value={formData.SellercplcTime || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">CPLC Status</label>
-            <select name="SellercplcStatus" value={formData.SellercplcStatus || ""} onChange={handleChange} className="input-field">
-              <option value="">CPLC Status</option>
-              <option value="Clear">Clear</option>
-              <option value="Reported">Reported</option>
-              <option value="Not Checked">Not Checked</option>
-            </select>
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Operator Number</label>
-            <input name="SelleroperatorNumber" value={formData.SelleroperatorNumber || ""} onChange={handleChange} className="input-field" />
-</div>
+              <input type="date" name="SellercplcDate" value={formData.SellercplcDate || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Cplc Time</label>
+              <input type="time" name="SellercplcTime" value={formData.SellercplcTime || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">CPLC Status</label>
+              <select name="SellercplcStatus" value={formData.SellercplcStatus || ""} onChange={handleChange} className="input-field">
+                <option value="">CPLC Status</option>
+                <option value="Clear">Clear</option>
+                <option value="Reported">Reported</option>
+                <option value="Not Checked">Not Checked</option>
+              </select>
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Operator Number</label>
+              <input name="SelleroperatorNumber" value={formData.SelleroperatorNumber || ""} onChange={handleChange} className="input-field" />
+            </div>
           </div>
 
           <hr className="my-6" />
@@ -242,15 +278,15 @@ export default function EditBike() {
           <h3 className="font-semibold mb-3">Owner Info</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">1 Owner Name</label>
-            <input name="1ownerName" value={formData["1ownerName"] || ""} onChange={handleChange} className="input-field" />
-</div>
+              <input name="1ownerName" value={formData["1ownerName"] || ""} onChange={handleChange} className="input-field" />
+            </div>
             {renderImages(["front1ownerCNIC", "back1ownerCNIC"])}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">2 Owner Name</label>
-            <input name="2ownerName" value={formData["2ownerName"] || ""} onChange={handleChange} className="input-field" />
-</div>
+              <input name="2ownerName" value={formData["2ownerName"] || ""} onChange={handleChange} className="input-field" />
+            </div>
             {renderImages(["front2ownerCNIC", "back2ownerCNIC"])}
           </div>
 
@@ -272,12 +308,12 @@ export default function EditBike() {
             {renderImages(["repairBill1", "repairBill2"])}
             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Repair Description</label>
 
-            <input placeholder="Repair Description" name="repairDescription" value={formData.repairDescription || ""} onChange={handleChange} className="input-field" />
+              <input placeholder="Repair Description" name="repairDescription" value={formData.repairDescription || ""} onChange={handleChange} className="input-field" />
             </div>
 
             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Repair Cost</label>
 
-            <input placeholder="Repair Cost" type="number" name="repairCost" value={formData.repairCost || ""} onChange={handleChange} className="input-field" />
+              <input placeholder="Repair Cost" type="number" name="repairCost" value={formData.repairCost || ""} onChange={handleChange} className="input-field" />
             </div>
           </div>
         </FormSection>
@@ -291,10 +327,10 @@ export default function EditBike() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
 
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Buyer Bill  Number</label>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Buyer Bill  Number</label>
 
 
-            <input placeholder="Buyer Bill Number " name="BuyerbillNumber" value={formData.BuyerbillNumber || ""}   onChange={handleChange} className="input-field" />
+              <input placeholder="Buyer Bill Number " name="BuyerbillNumber" value={formData.BuyerbillNumber || ""} onChange={handleChange} className="input-field" />
             </div>
 
             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Account Number</label>
@@ -303,7 +339,7 @@ export default function EditBike() {
               <input name="accountNumber" placeholder="Acount Number" value={formData.accountNumber || ""} onChange={handleChange} className="input-field" />
             </div>
             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Sale Date</label>
-              <input type="date" name="saleDate"  value={formData.saleDate || ""} onChange={handleChange} className="input-field" />
+              <input type="date" name="saleDate" value={formData.saleDate || ""} onChange={handleChange} className="input-field" />
             </div>
             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Sale Time</label>
 
@@ -330,13 +366,13 @@ export default function EditBike() {
               <input type="number" placeholder="Sale Price" name="salePrice" value={formData.salePrice || ""} onChange={handleChange} className="input-field" />
             </div>
 
-             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Payment Method</label>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Payment Method</label>
 
-            <select name="paymentMethod" value={formData.paymentMethod || ""} onChange={handleChange} className="input-field">
-              <option value="">Payment Method</option>
-              <option value="Cash">Cash</option>
-              <option value="Installment">Installment</option>
-            </select>
+              <select name="paymentMethod" value={formData.paymentMethod || ""} onChange={handleChange} className="input-field">
+                <option value="">Payment Method</option>
+                <option value="Cash">Cash</option>
+                <option value="Installment">Installment</option>
+              </select>
 
             </div>
             <select name="fileHandoverStatus" value={formData.fileHandoverStatus || ""} onChange={handleChange} className="input-field">
@@ -346,13 +382,13 @@ export default function EditBike() {
             </select>
 
 
-             
+
 
             {renderImages(["buyerFrontCNICPhoto", "buyerBackCNICPhoto", "buyerWithBikePhoto", "saleSlip",])}
 
- <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">File Handover Date</label>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">File Handover Date</label>
 
-            <input type="date" name="fileHandoverDate" value={formData.fileHandoverDate || ""} onChange={handleChange} className="input-field" />
+              <input type="date" name="fileHandoverDate" value={formData.fileHandoverDate || ""} onChange={handleChange} className="input-field" />
             </div>
 
             {renderImages(["fileHandOwerSlip"])}
@@ -362,22 +398,22 @@ export default function EditBike() {
           <h3 className="font-semibold mb-3">Buyer Verification</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Buyer Cplc Date</label>
-            <input type="date" name="BuyercplcDate" value={formData.BuyercplcDate || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Buyer Cplc Time</label>
-            <input type="time" name="BuyercplcTime" value={formData.BuyercplcTime || ""} onChange={handleChange} className="input-field" />
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Buyer CPLC Status</label>
-            <select name="BuyercplcStatus" value={formData.BuyercplcStatus || ""} onChange={handleChange} className="input-field">
-              <option value="">CPLC Status</option>
-              <option value="Clear">Clear</option>
-              <option value="Reported">Reported</option>
-              <option value="Not Checked">Not Checked</option>
-            </select>
-</div>
-<div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">BuyerOperator Number</label>
-            <input name="BuyeroperatorNumber" value={formData.BuyeroperatorNumber || ""} onChange={handleChange} className="input-field" />
-</div>
+              <input type="date" name="BuyercplcDate" value={formData.BuyercplcDate || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Buyer Cplc Time</label>
+              <input type="time" name="BuyercplcTime" value={formData.BuyercplcTime || ""} onChange={handleChange} className="input-field" />
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">Buyer CPLC Status</label>
+              <select name="BuyercplcStatus" value={formData.BuyercplcStatus || ""} onChange={handleChange} className="input-field">
+                <option value="">CPLC Status</option>
+                <option value="Clear">Clear</option>
+                <option value="Reported">Reported</option>
+                <option value="Not Checked">Not Checked</option>
+              </select>
+            </div>
+            <div className="flex flex-col"> <label className="font-semibold text-gray-700 mb-1">BuyerOperator Number</label>
+              <input name="BuyeroperatorNumber" value={formData.BuyeroperatorNumber || ""} onChange={handleChange} className="input-field" />
+            </div>
           </div>
         </FormSection>
       ),
@@ -385,37 +421,37 @@ export default function EditBike() {
   ];
 
   return (
-        <ProtectedAdmin>
+    <ProtectedAdmin>
 
-    <Layout>
+      <Layout>
 
-       {loading && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl text-center">
-            <h2 className="font-bold text-xl">Saving Record</h2>
-            <p className="text-gray-600 mt-2">Uploading images...</p>
-            <div className="mt-4 w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        {loading && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl text-center">
+              <h2 className="font-bold text-xl">Saving Record</h2>
+              <p className="text-gray-600 mt-2">Uploading images...</p>
+              <div className="mt-4 w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            </div>
           </div>
-        </div>
-      )}
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">Edit Bike</h2>
+        )}
+        <h2 className="text-3xl font-bold mb-6 text-gray-800">Edit Bike</h2>
 
-      <Tabs
-      tabs={tabs}
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
-    />
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mt-6">
-        <button
-          type="submit"
-          className="w-full sm:w-auto bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700"
-          disabled={loading}
-        >
-          {loading ? "Updating..." : "Update Bike"}
-        </button>
-      </form>
-    </Layout>
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mt-6">
+          <button
+            type="submit"
+            className="w-full sm:w-auto bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700"
+            disabled={loading}
+          >
+            {loading ? "Updating..." : "Update Bike"}
+          </button>
+        </form>
+      </Layout>
     </ProtectedAdmin>
   );
 }

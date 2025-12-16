@@ -44,7 +44,10 @@ import { useRouter } from "next/navigation";
       const s = (b) => statusCheck(b);
 
       if (activeFilter === "purchased")
-        list = list.filter(b => s(b).part1 && !s(b).part2);
+        list = list.filter(b => s(b).part1 &&   b.registrationNumber &&
+          b.sellerName &&
+          !b.buyerName &&
+          !b.salePrice);
 
       if (activeFilter === "repair")
         list = list.filter(b => s(b).part2);
@@ -60,6 +63,10 @@ import { useRouter } from "next/navigation";
           b.registrationNumber?.toLowerCase().includes(search.toLowerCase()) ||
           b.sellerName?.toLowerCase().includes(search.toLowerCase()) ||
           b.buyerName?.toLowerCase().includes(search.toLowerCase()) ||
+          b.accountNumber?.toLowerCase().includes(search.toLowerCase()) ||
+          b.buyerCNIC?.toLowerCase().includes(search.toLowerCase()) ||
+          b.sellerCNIC?.toLowerCase().includes(search.toLowerCase()) ||
+          b.accountNumber?.toLowerCase().includes(search.toLowerCase()) ||
           b.chassisNumber?.toLowerCase().includes(search.toLowerCase())
         );
 
